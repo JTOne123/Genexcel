@@ -30,6 +30,7 @@ artifacts:
 deploy:
   provider: NuGet
   api_key:
+    #Key will expire around 26/09/2018 - Need to generate another one and encrypt it with AppVeyour web tool
     secure: L8D5pckZ0KseUtlex1nSj8gjAyMeIichvxNd+KXccWqilYLoai/YZgwROnSei5xi
   skip_symbols: false
   artifact: nupkg
