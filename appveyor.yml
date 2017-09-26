@@ -15,6 +15,7 @@ before_build:
   - cmd: dotnet restore ./src/Genexcel/Genexcel.csproj --verbosity m
 build_script:
   # output will be in ./src/bin/debug/netcoreapp1.1/publish
-  - cmd: dotnet publish ./src/Genexcel/Genexcel.csproj
+  - cmd: dotnet publish ./src/Genexcel/Genexcel.csproj -f=netstandard1.3
+  - cmd: dotnet publish ./src/Genexcel/Genexcel.csproj -f=net45
 after_build:
   # For once the build has completed
