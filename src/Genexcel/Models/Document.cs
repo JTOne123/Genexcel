@@ -158,7 +158,7 @@ namespace Genexcel {
 					var chartSpace = new ChartSpace();
 					chartPart.ChartSpace = chartSpace;
 					chartSpace.Append(new Date1904() { Val = false });
-					chartSpace.Append(new EditingLanguage() { Val = "pt-BR" });
+					chartSpace.Append(new EditingLanguage() { Val = "en-US" });
 					chartSpace.Append(new RoundedCorners() { Val = false });
 					var chart = chartSpace.AppendChild(new DocumentFormat.OpenXml.Drawing.Charts.Chart());
 					chartSpace.Append(new ChartShapeProperties(
@@ -401,7 +401,7 @@ namespace Genexcel {
 													Baseline = 0
 												}
 											),
-											new EndParagraphRunProperties() { Language = "pt-BR" }
+											new EndParagraphRunProperties() { Language = "en-US" }
 										)
 									),
 									new CrossingAxis() { Val = 48672768U },
@@ -488,7 +488,7 @@ namespace Genexcel {
 													Baseline = 0
 												}
 											),
-											new EndParagraphRunProperties() { Language = "pt-BR" }
+											new EndParagraphRunProperties() { Language = "en-US" }
 										)
 									),
 									new CrossingAxis() { Val = 48650112U },
@@ -567,7 +567,7 @@ namespace Genexcel {
 					Create(path, SpreadsheetDocumentType.Workbook));
 		}
 
-		//https://msdn.microsoft.com/pt-br/library/office/cc861607.aspx
+		//https://msdn.microsoft.com/en-US/library/office/cc861607.aspx
 		// Given text and a SharedStringTablePart, creates a SharedStringItem with the specified text 
 		// and inserts it into the SharedStringTablePart. If the item already exists, returns its index.
 		private static int InsertSharedStringItem(string text, SharedStringTablePart shareStringPart) {
@@ -593,7 +593,7 @@ namespace Genexcel {
 			return i;
 		}
 
-		//https://msdn.microsoft.com/pt-br/library/office/cc861607.aspx
+		//https://msdn.microsoft.com/en-US/library/office/cc861607.aspx
 		// Given a column name, a row index, and a WorksheetPart, inserts a cell into the worksheet. 
 		// If the cell already exists, returns it. 
 		private static DocumentFormat.OpenXml.Spreadsheet.Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart) {
