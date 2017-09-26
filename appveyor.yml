@@ -24,3 +24,9 @@ build_script:
   - cmd: dotnet pack
 after_build:
   # For once the build has completed
+deploy:
+  provider: NuGet
+  api_key:
+    secure: L8D5pckZ0KseUtlex1nSj8gjAyMeIichvxNd+KXccWqilYLoai/YZgwROnSei5xi
+  skip_symbols: false
+  artifact: /.*\.nupkg/
