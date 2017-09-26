@@ -15,17 +15,21 @@ using System.Reflection;
 namespace Genexcel {
 	public class Document {
 		const int _sheetNameLengthLimit = 31;
-		HashSet<Models.Sheet> _sheets = new HashSet<Models.Sheet>() {
-			new Models.Sheet("Plan1")
-		};
+		HashSet<Models.Sheet> _sheets = new HashSet<Models.Sheet>();
+		public Document() {
+			this._sheets.Add(new Models.Sheet(this, "Plan1"));
+		}
 
 		public Models.Sheet AddSheet(string title) {
-			return AddSheet(new Models.Sheet(title));
-		}
-		public Models.Sheet AddSheet(Models.Sheet sheet) {
+			var sheet = new Models.Sheet(this, title);
 			this._sheets.Add(sheet);
 			return sheet;
+			//return AddSheet(new Models.Sheet(this, title));
 		}
+		//public Models.Sheet AddSheet(Models.Sheet sheet) {
+		//	this._sheets.Add(sheet);
+		//	return sheet;
+		//}
 
 		public IEnumerable<Models.Sheet> GetSheets() {
 			return _sheets.ToList();

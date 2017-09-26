@@ -108,8 +108,7 @@ namespace Genexcel.Tests
 		[TestMethod]
 		public void CreateSheetWithDataStreamTest() {
 			var excel = new Document();
-			var newSheet = new Sheet("Test");
-			excel.AddSheet(newSheet)
+			excel.AddSheet("Test")
 				.WriteToCell(1, 1, "Test");
 			using (var memoryStream = excel.Save()) {
 				var bytes = memoryStream.ToArray();
@@ -121,16 +120,15 @@ namespace Genexcel.Tests
 		[TestMethod]
 		public void CreateSheetLargeNameTest() {
 			var excel = new Document();
-			excel.AddSheet(new Sheet("Teste Nova Sheet Com um nome bem grande"));
+			excel.AddSheet("Teste Nova Sheet Com um nome bem grande");
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
 
 		[TestMethod]
 		public void CreateSheetWithDataTest() {
 			var excel = new Document();
-			var newSheet = new Sheet("Test");
-			excel.AddSheet(newSheet)
-				.WriteToCell(1, 1, "Test");
+			var newSheet = excel.AddSheet("Test");
+			newSheet.WriteToCell(1, 1, "Test");
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
 
@@ -146,8 +144,7 @@ namespace Genexcel.Tests
 		[TestMethod]
 		public void CreateSheetWithNumericTest() {
 			var excel = new Document();
-			var newSheet = new Sheet("Test");
-			excel.AddSheet(newSheet)
+			excel.AddSheet("Test")
 				.WriteToCell(1, 1, 1);
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
@@ -156,8 +153,7 @@ namespace Genexcel.Tests
 		public void ManySheetsManyCellsTest() {
 			var excel = new Document();
 			for(int i = 0; i < 20; i++) {
-				var sheet = new Sheet($"S{i}");
-				excel.AddSheet(sheet);
+				var sheet = excel.AddSheet($"S{i}");
 				for(int j = 1; j < 20; j++) {
 					for(int k = 1; k < 20; k += 2) {
 						sheet.WriteToCell(j, k, $"Test{j}:{k}");

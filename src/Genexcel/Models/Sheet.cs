@@ -5,9 +5,12 @@ using System.Text;
 
 namespace Genexcel.Models {
 	public class Sheet {
-		public Sheet() {}
-		public Sheet(string name) { this.Name = name; }
-		public string Name { get; set; } = "Plan";
+		public Sheet(Document document, string name =null) {
+			this.Document = document;
+			this.Name = name ?? "Plan";
+		}
+		//public Sheet(string name) { this.Name = name; }
+		public string Name { get; set; }
 
 		public List<Chart> Charts { get; } = new List<Chart>();
 		
@@ -16,6 +19,7 @@ namespace Genexcel.Models {
 		internal Column[] Columns { get; } = new Column[16384];
 		internal bool HasCustomColumn { get; private set; }
 
+		public Document Document { get; private set; }
 
 		Cell InitCell(int row, int col) {
 			if (!_cells.ContainsKey(row)) { _cells[row] = new Dictionary<int, Cell>(); }

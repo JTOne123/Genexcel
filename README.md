@@ -19,7 +19,7 @@ sheet1.Name = "My first sheet";
 sheet1.WriteToCell(1, 1, "Test 1"); 
 
 //Create another sheet 
-var sheet2 = excel.AddSheet(new Sheet("My second sheet")); 
+var sheet2 = excel.AddSheet("My second sheet"); 
 
 //Write some data 
 sheet2.WriteToCell(1, 1, "Test 2"); 
