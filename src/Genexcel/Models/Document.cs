@@ -15,19 +15,19 @@ using System.Reflection;
 namespace Genexcel {
 	public class Document {
 		const int _sheetNameLengthLimit = 31;
-		HashSet<Sheet> _sheets = new HashSet<Sheet>() {
-			new Sheet("Plan1")
+		HashSet<Models.Sheet> _sheets = new HashSet<Models.Sheet>() {
+			new Models.Sheet("Plan1")
 		};
 
-		public Sheet AddSheet(string title) {
-			return AddSheet(new Sheet(title));
+		public Models.Sheet AddSheet(string title) {
+			return AddSheet(new Models.Sheet(title));
 		}
-		public Sheet AddSheet(Sheet sheet) {
+		public Models.Sheet AddSheet(Models.Sheet sheet) {
 			this._sheets.Add(sheet);
 			return sheet;
 		}
 
-		public IEnumerable<Sheet> GetSheets() {
+		public IEnumerable<Models.Sheet> GetSheets() {
 			return _sheets.ToList();
 		}
 
@@ -39,7 +39,7 @@ namespace Genexcel {
 			workbookPart.Workbook = workbook;
 
 			//Adiciona lista sheets
-			var sheets = workbook.AppendChild<Sheets>(new Sheets());
+			var sheets = workbook.AppendChild(new Sheets());
 
 			//Adiciona as planilhas ao workbook
 			uint sheetId = 1;
@@ -47,7 +47,55 @@ namespace Genexcel {
 			foreach (var s in _sheets) {
 				//Criar worksheet part no workbookpart
 				var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-				worksheetPart.Worksheet = new Worksheet(new SheetData());
+				var worksheet = new Worksheet();
+				//Columns
+				if (s.HasCustomColumn) {
+					var columns = new Columns();
+					worksheet.Append(columns);
+					Column currentColElement = null;
+					Models.Column currentColModel = new Models.Column();//fake current
+					for(uint i = 0; i < s.Columns.Length; i++) {
+						var col = s.Columns[i];
+						if(col == currentColModel) {
+							currentColElement.Max = i + 1;
+						} else {
+							currentColElement = new Column() {
+								//Style = 1,
+								Min = i + 1,
+								Max = i + 1,
+								//CustomWidth = false,
+								Width = Models.Column.DEFAULT_WIDTH
+							};
+							if(col != null) {
+								currentColElement.CustomWidth = true;
+								currentColElement.Width = col.Width;
+							}
+							columns.Append(currentColElement);
+						}
+						currentColModel = col;
+					}
+
+					//Column currentColumnElement = null;
+					//Models.Column currentColumnModel = null;
+					//foreach (var col in s.Columns) {
+					//	Column colElement;
+					//	if(col == currentColumnModel) { colElement = currentColumnElement }
+					//	if(col == null) {
+
+					//	}
+					//	columns.Append(new Column() {
+					//		Min = (uint)col.Min,
+					//		Max = (uint)col.Max,
+					//		Width = col.Width,
+					//		Style = 1,
+					//		CustomWidth = true
+					//	});
+					//}
+				}
+				var sheetData = new SheetData();
+				worksheet.Append(sheetData);
+				worksheetPart.Worksheet = worksheet;
+				
 
 				var name = s.Name ?? "Plan";
 				name = name.Length > _sheetNameLengthLimit ?
@@ -60,6 +108,9 @@ namespace Genexcel {
 					Name = name
 				};
 				sheets.Append(sheet);
+
+				
+
 
 				foreach (var c in s.GetCells()) {
 					// Insert cell A1 into the new worksheet.
@@ -95,6 +146,7 @@ namespace Genexcel {
 					}
 				}
 
+			
 				//Charts
 				foreach (var ch in s.Charts) {
 					//https://msdn.microsoft.com/en-us/library/office/cc820055.aspx#How the Sample Code Works
@@ -181,12 +233,12 @@ namespace Genexcel {
 					var plotArea = chart.AppendChild(new PlotArea());
 
 					var layout = plotArea.AppendChild(new Layout());
-					if (ch is Charts.AreaChart || ch is Charts.BarChart) {
+					if (ch is Models.AreaChart || ch is Models.BarChart) {
 
 						#region init chart
-						var chObject = ch as Charts.Chart;
+						var chObject = ch as Models.Chart;
 						OpenXmlCompositeElement chartElement;
-						if (ch is Charts.AreaChart) {
+						if (ch is Models.AreaChart) {
 							chartElement = plotArea.AppendChild(
 									//Dont know what extensions are for
 									new AreaChart(new Grouping() { Val = GroupingValues.Standard })
@@ -210,7 +262,7 @@ namespace Genexcel {
 						foreach (var dts in chObject.Data.Datasets) {
 							var index = (uint)chObject.Data.Datasets.IndexOf(dts);
 							OpenXmlCompositeElement chartSeries;
-							if (ch is Charts.AreaChart) {
+							if (ch is Models.AreaChart) {
 								chartSeries = chartElement.AppendChild(new AreaChartSeries());
 							} else {
 								chartSeries = chartElement.AppendChild(new BarChartSeries());
@@ -226,7 +278,7 @@ namespace Genexcel {
 								)
 							);
 
-							if(ch is Charts.BarChart) {
+							if(ch is Models.BarChart) {
 								chartSeries.Append(new InvertIfNegative() { Val = false });
 							}
 							
@@ -270,7 +322,7 @@ namespace Genexcel {
 								)
 							);
 
-						if(ch is Charts.BarChart) {
+						if(ch is Models.BarChart) {
 							chartElement.Append(new GapWidth() { Val = 219 });
 							chartElement.Append(new Overlap() { Val = -27 });
 						}
@@ -296,7 +348,7 @@ namespace Genexcel {
 										FormatCode = "General",
 										SourceLinked = true
 									},
-									new MajorTickMark() { Val = ch is Charts.AreaChart ? TickMarkValues.Outside : TickMarkValues.None },
+									new MajorTickMark() { Val = ch is Models.AreaChart ? TickMarkValues.Outside : TickMarkValues.None },
 									new MinorTickMark() { Val = TickMarkValues.None },
 									new TickLabelPosition() { Val = TickLabelPositionValues.NextTo },
 									new ChartShapeProperties(
@@ -441,14 +493,14 @@ namespace Genexcel {
 									),
 									new CrossingAxis() { Val = 48650112U },
 									new Crosses() { Val = CrossesValues.AutoZero },
-									new CrossBetween() { Val = ch is Charts.AreaChart ? CrossBetweenValues.MidpointCategory : CrossBetweenValues.Between })
+									new CrossBetween() { Val = ch is Models.AreaChart ? CrossBetweenValues.MidpointCategory : CrossBetweenValues.Between })
 							);
 						// Add the chart Legend.
 						//Legend legend = chart.AppendChild(new Legend(new LegendPosition() { Val = new EnumValue<LegendPositionValues>(LegendPositionValues.Right) },
 						//	new Layout()));
 
 						chart.Append(new PlotVisibleOnly() { Val = true });
-						chart.Append(new DisplayBlanksAs() { Val = ch is Charts.AreaChart ? DisplayBlanksAsValues.Zero : DisplayBlanksAsValues.Gap });
+						chart.Append(new DisplayBlanksAs() { Val = ch is Models.AreaChart ? DisplayBlanksAsValues.Zero : DisplayBlanksAsValues.Gap });
 						chart.Append(new ShowDataLabelsOverMaximum() { Val = false });
 						#endregion
 

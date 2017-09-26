@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Genexcel.Charts {
+namespace Genexcel.Models {
 	public abstract class Chart {
 		public ChartData Data { get; set; } = new ChartData();
 	}

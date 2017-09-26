@@ -1,5 +1,5 @@
 using Genexcel;
-using Genexcel.Charts;
+using Genexcel.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -151,43 +151,7 @@ namespace Genexcel.Tests
 				.WriteToCell(1, 1, 1);
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
-
-
-
-		//[TestMethod]
-		//public void OneFormulaCellTest() {
-		//	using (var builder = new Builder()) {
-		//		builder.Cell(1, 1, "=1+1");
-		//		builder.Save("C:/Tests/test-one-formula-cell.xlsx");
-		//	}
-		//}
-
-		//[TestMethod]
-		//public void OneHyperlinkCellTest() {
-		//	using (var builder = new Builder()) {
-		//		builder.Cell(1, 1, "uol", hyperlink: "http://www.uol.com.br");
-		//		builder.Save("C:/Tests/test-one-hyperlink-cell.xlsx");
-		//	}
-		//}
-
-		//[TestMethod]
-		//public void ManyHyperlinkCellTest() {
-		//	using (var builder = new Builder()) {
-		//		builder.Cell(1, 1, "uol", hyperlink: "http://www.uol.com.br");
-		//		builder.Cell(2, 1, "uol", hyperlink: "http://www.uol.com.br");
-		//		builder.Cell(3, 1, "uol", hyperlink: "http://www.uol.com.br");
-		//		builder.Save("C:/Tests/test-many-hyperlink-cell.xlsx");
-		//	}
-		//}
-
-		//[TestMethod]
-		//public void OneCellTest() {
-		//	using (var builder = new Builder()) {
-		//		builder.Cell(1, 1, "Test");
-		//		builder.Save("C:/Tests/test-one-cell.xlsx");
-		//	}
-		//}
-
+		
 		[TestMethod]
 		public void ManySheetsManyCellsTest() {
 			var excel = new Document();
@@ -200,6 +164,17 @@ namespace Genexcel.Tests
 					}
 				}
 			}
+			Save(excel, MethodInfo.GetCurrentMethod());
+		}
+
+		[TestMethod]
+		public void SetColumnWidthTest() {
+			var excel = new Document();
+			var sheet = excel.GetSheets().First();
+			sheet.WriteToCell(1, 1, "Test");
+			sheet.SetColumnWidth(100, 3, 5);
+			// sheet.SetColumnWidth(50, 4, 10);
+			//sheet.SetColumnWidth(200, 8, 20);
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
 	}
