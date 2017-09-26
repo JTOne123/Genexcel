@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C2B9399D-7D75-462C-8D38-8116948E8FCC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E40C6F75-50A3-4DDE-BADE-53DD1618B44D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Genexcel.Tests", "test\Genexcel.Tests.csproj", "{F8E9F18E-7FC5-45BA-946E-294948941807}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Genexcel", "src\Genexcel\Genexcel.csproj", "{6266FB05-C682-4B3B-81BC-D77DD372A991}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8E9F18E-7FC5-45BA-946E-294948941807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8E9F18E-7FC5-45BA-946E-294948941807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8E9F18E-7FC5-45BA-946E-294948941807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8E9F18E-7FC5-45BA-946E-294948941807}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6266FB05-C682-4B3B-81BC-D77DD372A991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6266FB05-C682-4B3B-81BC-D77DD372A991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6266FB05-C682-4B3B-81BC-D77DD372A991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6266FB05-C682-4B3B-81BC-D77DD372A991}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F8E9F18E-7FC5-45BA-946E-294948941807} = {E40C6F75-50A3-4DDE-BADE-53DD1618B44D}
+		{6266FB05-C682-4B3B-81BC-D77DD372A991} = {C2B9399D-7D75-462C-8D38-8116948E8FCC}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {15BD9ED4-972E-4E70-A97F-3676A19EA818}
+	EndGlobalSection
+EndGlobal
