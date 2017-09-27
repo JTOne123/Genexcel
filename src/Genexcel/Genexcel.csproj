@@ -6,27 +6,7 @@
     <Copyright />
     <Authors>Guilherme Meinlschmiedt Abdo</Authors>
     <Company></Company>
-    <Description>Wrapper for creating xlsx files with DocumentFormat.OpenXml 
-
-usage: 
-var excel = new Document(); 
-
-//Get the first sheet 
-var sheet1 = excel.GetSheets().First() 
-//Change sheet name 
-sheet1.Name = "My first sheet"; 
-
-//Write some data 
-sheet1.WriteToCell(1, 1, "Test 1"); 
-
-//Create another sheet 
-var sheet2 = excel.AddSheet(new Sheet("My second sheet")); 
-
-//Write some data 
-sheet2.WriteToCell(1, 1, "Test 2"); 
-
-//Save to file, or stream... 
-excel.Save("myFile.xlsx");</Description>
+    <Description>Wrapper for creating xlsx files with DocumentFormat.OpenXml</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
     <AssemblyVersion>0.0.1.0</AssemblyVersion>
     <FileVersion>0.0.1.0</FileVersion>

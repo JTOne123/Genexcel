@@ -8,21 +8,21 @@ PM> Install-Package Genexcel
 
 ## Usage
 ```csharp
-var excel = new Document(); 
+var excel = new Document();
 
 //Get the first sheet 
-var sheet1 = excel.GetSheets().First() 
+var sheet1 = excel.GetSheets().First();
 //Change sheet name 
-sheet1.Name = "My first sheet"; 
+sheet1.Name = "My first sheet";
 
 //Write some data 
-sheet1.WriteToCell(1, 1, "Test 1"); 
+sheet1.Add(new Cell(1, 1, "Test 1"));
 
 //Create another sheet 
-var sheet2 = excel.AddSheet("My second sheet"); 
+var sheet2 = excel.AddSheet("My second sheet");
 
 //Write some data 
-sheet2.WriteToCell(1, 1, "Test 2"); 
+sheet2.Add(new Cell(1, 1, "Test 2"));
 
 //Save to file, or stream... 
 excel.Save("myFile.xlsx");
