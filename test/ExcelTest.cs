@@ -7,11 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Genexcel.Tests
-{
-    [TestClass]
-    public class ExcelTest
-    {
+namespace Genexcel.Tests {
+	[TestClass]
+	public class ExcelTest {
 		public ExcelTest() {
 			if (!Directory.Exists("C:/Tests/excel")) {
 				Directory.CreateDirectory("C:/Tests/excel");
@@ -77,7 +75,7 @@ namespace Genexcel.Tests
 						}
 					}
 				}
-				
+
 			});
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
@@ -109,7 +107,7 @@ namespace Genexcel.Tests
 		public void CreateSheetWithDataStreamTest() {
 			var excel = new Document();
 			excel.AddSheet("Test")
-				.WriteToCell(1, 1, "Test");
+				.Add(new Cell(1, 1, "Test"));
 			using (var memoryStream = excel.Save()) {
 				var bytes = memoryStream.ToArray();
 				File.WriteAllBytes(CreateFileName(MethodInfo.GetCurrentMethod()), bytes);
@@ -128,7 +126,7 @@ namespace Genexcel.Tests
 		public void CreateSheetWithDataTest() {
 			var excel = new Document();
 			var newSheet = excel.AddSheet("Test");
-			newSheet.WriteToCell(1, 1, "Test");
+			newSheet.Add(new Cell(1, 1, "Test"));
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
 
@@ -137,7 +135,7 @@ namespace Genexcel.Tests
 			var excel = new Document();
 			var sheet = excel.GetSheets().First();
 			sheet.Name = "Minha planilha";
-			sheet.WriteToCell(1, 1, "Test");
+			sheet.Add(new Cell(1, 1, "Test"));
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
 
@@ -145,18 +143,18 @@ namespace Genexcel.Tests
 		public void CreateSheetWithNumericTest() {
 			var excel = new Document();
 			excel.AddSheet("Test")
-				.WriteToCell(1, 1, 1);
+				.Add(new Cell(1, 1, 1));
 			Save(excel, MethodInfo.GetCurrentMethod());
 		}
-		
+
 		[TestMethod]
 		public void ManySheetsManyCellsTest() {
 			var excel = new Document();
-			for(int i = 0; i < 20; i++) {
+			for (int i = 0; i < 20; i++) {
 				var sheet = excel.AddSheet($"S{i}");
-				for(int j = 1; j < 20; j++) {
-					for(int k = 1; k < 20; k += 2) {
-						sheet.WriteToCell(j, k, $"Test{j}:{k}");
+				for (int j = 1; j < 20; j++) {
+					for (int k = 1; k < 20; k += 2) {
+						sheet.Add(new Cell(j, k, $"Test{j}:{k}"));
 					}
 				}
 			}
@@ -167,11 +165,41 @@ namespace Genexcel.Tests
 		public void SetColumnWidthTest() {
 			var excel = new Document();
 			var sheet = excel.GetSheets().First();
-			sheet.WriteToCell(1, 1, "Test");
+			sheet.Add(new Cell(1, 1, "Test"));
 			sheet.SetColumnWidth(100, 3, 5);
 			// sheet.SetColumnWidth(50, 4, 10);
 			//sheet.SetColumnWidth(200, 8, 20);
 			Save(excel, MethodInfo.GetCurrentMethod());
+		}
+
+		[TestMethod]
+		public void HyperlinkTest() {
+			var excel = new Document();
+			var sheet = excel.GetSheets().First();
+			sheet.Add(new Cell(1, 1, "Test") { Hyperlink = "https://www.google.com" });
+			Save(excel, MethodInfo.GetCurrentMethod());
+		}
+
+		[TestMethod]
+		public void ReadMeExample1() {
+			var excel = new Document();
+
+			//Get the first sheet 
+			var sheet1 = excel.GetSheets().First();
+			//Change sheet name 
+			sheet1.Name = "My first sheet";
+
+			//Write some data 
+			sheet1.Add(new Cell(1, 1, "Test 1"));
+
+			//Create another sheet 
+			var sheet2 = excel.AddSheet("My second sheet");
+
+			//Write some data 
+			sheet2.Add(new Cell(1, 1, "Test 2"));
+
+			//Save to file, or stream... 
+			excel.Save("myFile.xlsx");
 		}
 	}
 }

@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Drawing.Spreadsheet;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Validation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,10 +12,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
+using System.Text;
 
 namespace Genexcel {
 	public class Document {
 		const int _sheetNameLengthLimit = 31;
+		static uint _idGen = 1;
 		HashSet<Models.Sheet> _sheets = new HashSet<Models.Sheet>();
 		public Document() {
 			this._sheets.Add(new Models.Sheet(this, "Plan1"));
@@ -34,13 +38,74 @@ namespace Genexcel {
 		public IEnumerable<Models.Sheet> GetSheets() {
 			return _sheets.ToList();
 		}
+		
+		//void InitBasicStylePart(WorkbookPart workbookPart) {
+		//	WorkbookStylesPart stylesPart;
+		//	if (!workbookPart.GetPartsOfType<WorkbookStylesPart>().Any()) {
+		//		stylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
+		//		stylesPart.Stylesheet = new Stylesheet();
+		//		var stylesheet = stylesPart.Stylesheet;
+		//		stylesheet.Fonts = new DocumentFormat.OpenXml.Spreadsheet.Fonts(
+		//			new Font(
+		//				new FontSize() { Val = 11 },
+		//				new Color() { Theme = 1 }
+		//			)
+		//		);
+
+		//		stylesheet.CellStyleFormats = new CellStyleFormats();
+		//		stylesheet.CellStyleFormats.Append(new CellFormat());
+		//		stylesheet.CellFormats = new CellFormats();
+		//	}
+		//	var cellFormat = stylesheet.CellFormats.Elements<CellFormat>().FirstOrDefault(cf => cf.FormatId == cellStyle.FormatId)
+		//	   ?? stylesheet.CellFormats.AppendChild(new CellFormat() {
+		//		   FormatId = cellStyle.FormatId,
+		//	   });
+
+
+		//	if (stylesheet.CellStyles == null) {
+		//		stylesheet.CellStyles = new CellStyles();
+		//	}
+		//	var cellStyles = stylesheet.CellStyles;
+		//	var cellStyle = cellStyles.Elements<CellStyle>().FirstOrDefault(cs => cs.Name == "Hyperlink")
+		//		?? cellStyles.AppendChild(new CellStyle() {
+		//			Name = "Hyperlink",
+		//			BuiltinId = 8,
+		//			FormatId = 0 //index 0 from cellstyleformats
+		//					});
+
+
+
+
+
+
+
+		//}
 
 		void Save(SpreadsheetDocument spreadsheetDocument) {
-			//Cria um workbook part nesse documento
+			//Create workbook parts
 			var workbookPart = spreadsheetDocument.AddWorkbookPart();
-			//Seta o workbook
+			//Sets workbook
 			var workbook = new Workbook();
 			workbookPart.Workbook = workbook;
+
+			//Set theme
+			using (var stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream("Genexcel.Resources.Office.theme1.xml")) {
+				using (var reader = new StreamReader(stream)) {
+					var xml = reader.ReadToEnd();
+					workbookPart.AddNewPart<ThemePart>();
+					workbookPart.ThemePart.Theme = new Theme(xml);
+				}
+			}
+
+			//Set styles
+			using (var stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream("Genexcel.Resources.Office.styles.xml")) {
+				using (var reader = new StreamReader(stream)) {
+					var xml = reader.ReadToEnd();
+					workbookPart.AddNewPart<WorkbookStylesPart>();
+					workbookPart.WorkbookStylesPart.Stylesheet = new Stylesheet(xml);
+				}
+			}
+
 
 			//Adiciona lista sheets
 			var sheets = workbook.AppendChild(new Sheets());
@@ -100,7 +165,6 @@ namespace Genexcel {
 				worksheet.Append(sheetData);
 				worksheetPart.Worksheet = worksheet;
 				
-
 				var name = s.Name ?? "Plan";
 				name = name.Length > _sheetNameLengthLimit ?
 					name.Substring(0, _sheetNameLengthLimit) :
@@ -134,7 +198,7 @@ namespace Genexcel {
 
 						cell.CellValue = new CellValue(index.ToString());
 						cell.DataType = new EnumValue<CellValues>(CellValues.SharedString);
-					} else if (value is int
+					} else if (value  is int
 							 || value is decimal
 							 || value is long
 							 || value is short
@@ -147,6 +211,24 @@ namespace Genexcel {
 						var formattedValue = toString.Invoke(value, new object[] { new CultureInfo("en-US") }).ToString();
 						cell.CellValue = new CellValue(formattedValue);
 						cell.DataType = new EnumValue<CellValues>(CellValues.Number);
+					}
+
+					if (!string.IsNullOrWhiteSpace(c.Hyperlink)) {
+						var rId = $"r{Guid.NewGuid().ToString()}";
+						//if (workbookPart.GetPartsOfType<Relat>().Any()) {
+						//	shareStringPart = worksheet.getp.GetPartsOfType<SharedStringTablePart>().First();
+						//} else {
+						//	shareStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+						//}
+						var rel = worksheetPart.AddHyperlinkRelationship(new Uri(c.Hyperlink), true, rId);
+						var hyperlinks = worksheet.Elements<Hyperlinks>().FirstOrDefault();
+						if(hyperlinks == null) { hyperlinks = worksheet.AppendChild(new Hyperlinks()); }
+						hyperlinks.Append(new DocumentFormat.OpenXml.Spreadsheet.Hyperlink() {
+							Reference = cell.CellReference,
+							Id = rId
+						});
+						
+						cell.StyleIndex = 2;//Hyperlink, should be an enum
 					}
 				}
 
@@ -165,24 +247,24 @@ namespace Genexcel {
 					chartSpace.Append(new EditingLanguage() { Val = "en-US" });
 					chartSpace.Append(new RoundedCorners() { Val = false });
 					var chart = chartSpace.AppendChild(new DocumentFormat.OpenXml.Drawing.Charts.Chart());
-					chartSpace.Append(new ChartShapeProperties(
-											new SolidFill(
-												new SchemeColor() { Val = SchemeColorValues.Background1 }
-											),
-											new DocumentFormat.OpenXml.Drawing.Outline(
-												new SolidFill(
-													new SchemeColor(
-														new LuminanceModulation() { Val = 15000 },
-														new LuminanceOffset() { Val = 85000 }
-													) { Val = SchemeColorValues.Text1 }
-												)
-											) {
-												Width = 9525,
-												CapType = LineCapValues.Flat,
-												CompoundLineType = CompoundLineValues.Single,
-												Alignment = PenAlignmentValues.Center
-											}
-									));
+					//chartSpace.Append(new ChartShapeProperties(
+					//						new SolidFill(
+					//							new SchemeColor() { Val = SchemeColorValues.Background1 }
+					//						),
+					//						new DocumentFormat.OpenXml.Drawing.Outline(
+					//							new SolidFill(
+					//								new SchemeColor(
+					//									new LuminanceModulation() { Val = 15000 },
+					//									new LuminanceOffset() { Val = 85000 }
+					//								) { Val = SchemeColorValues.Text1 }
+					//							)
+					//						) {
+					//							Width = 9525,
+					//							CapType = LineCapValues.Flat,
+					//							CompoundLineType = CompoundLineValues.Single,
+					//							Alignment = PenAlignmentValues.Center
+					//						}
+					//				));
 
 					//Dont know
 					chart.AppendChild(new Title(
@@ -546,9 +628,21 @@ namespace Genexcel {
 					// Save the WorksheetDrawing object.
 					drawingsPart.WorksheetDrawing.Save();
 				}
+
 			}
 
-			workbookPart.Workbook.Save();
+			var validator = new OpenXmlValidator();
+			var errors = validator.Validate(spreadsheetDocument);
+			if (errors.Any()) {
+				var sbError = new StringBuilder();
+				sbError.Append("ERROR: ");
+				foreach(var e in errors) {
+					sbError.Append($"***{e.Node.ToString()}:{e.Description}***");
+				}
+				throw new Exception(sbError.ToString());
+			}
+
+			workbook.Save();
 
 			// Close the document.
 			spreadsheetDocument.Close();
@@ -600,7 +694,7 @@ namespace Genexcel {
 		//https://msdn.microsoft.com/en-US/library/office/cc861607.aspx
 		// Given a column name, a row index, and a WorksheetPart, inserts a cell into the worksheet. 
 		// If the cell already exists, returns it. 
-		private static DocumentFormat.OpenXml.Spreadsheet.Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart) {
+		private static Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart) {
 			Worksheet worksheet = worksheetPart.Worksheet;
 			SheetData sheetData = worksheet.GetFirstChild<SheetData>();
 			string cellReference = columnName + rowIndex;
@@ -615,19 +709,19 @@ namespace Genexcel {
 			}
 
 			// If there is not a cell with the specified column name, insert one.  
-			if (row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0) {
-				return row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>().Where(c => c.CellReference.Value == cellReference).First();
+			if (row.Elements<Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0) {
+				return row.Elements<Cell>().Where(c => c.CellReference.Value == cellReference).First();
 			} else {
 				// Cells must be in sequential order according to CellReference. Determine where to insert the new cell.
-				DocumentFormat.OpenXml.Spreadsheet.Cell refCell = null;
-				foreach (var cell in row.Elements<DocumentFormat.OpenXml.Spreadsheet.Cell>()) {
+				Cell refCell = null;
+				foreach (var cell in row.Elements<Cell>()) {
 					if (string.Compare(cell.CellReference.Value, cellReference, true) > 0) {
 						refCell = cell;
 						break;
 					}
 				}
 
-				var newCell = new DocumentFormat.OpenXml.Spreadsheet.Cell() { CellReference = cellReference };
+				var newCell = new Cell() { CellReference = cellReference };
 				row.InsertBefore(newCell, refCell);
 
 				worksheet.Save();

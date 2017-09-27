@@ -21,13 +21,21 @@ namespace Genexcel.Models {
 
 		public Document Document { get; private set; }
 
-		Cell InitCell(int row, int col) {
-			if (!_cells.ContainsKey(row)) { _cells[row] = new Dictionary<int, Cell>(); }
-			if (!_cells[row].ContainsKey(col)) { _cells[row][col] = new Cell(row, col); }
-			return _cells[row][col];
+		//Cell InitCell(int row, int col) {
+		//	if (!_cells.ContainsKey(row)) { _cells[row] = new Dictionary<int, Cell>(); }
+		//	if (!_cells[row].ContainsKey(col)) { _cells[row][col] = new Cell(row, col); }
+		//	return _cells[row][col];
+		//}
+
+		public Sheet Add(Cell cell) {
+			if (!_cells.ContainsKey(cell.Row)) { _cells[cell.Row] = new Dictionary<int, Cell>(); }
+			_cells[cell.Row][cell.Col] = cell;
+			cell.Sheet = this;
+			return this;
 		}
 
-		
+		//public Sheet Add(Column column) {
+		//}
 
 		internal IEnumerable<Cell> GetCells() {
 			return _cells.Values.SelectMany(v => v.Values);
@@ -44,16 +52,22 @@ namespace Genexcel.Models {
 			//Columns.Add(new Column(from, to.Value) { Width = width });
 		}
 
-		public void WriteToCell(int row, int col, string value) {
-			InitCell(row, col).Value = value;
-		}
+		//public Cell WriteToCell(int row, int col, string value) {
+		//	var cell = InitCell(row, col);
+		//	cell.Value = value;
+		//	return cell;
+		//}
 
-		public void WriteToCell(int row, int col, int value) {
-			InitCell(row, col).Value = value;
-		}
+		//public Cell WriteToCell(int row, int col, int value) {
+		//	var cell = InitCell(row, col);
+		//	cell.Value = value;
+		//	return cell;
+		//}
 
-		public void WriteToCell(int row, int col, decimal value) {
-			InitCell(row, col).Value = value;
-		}
+		//public Cell WriteToCell(int row, int col, decimal value) {
+		//	var cell = InitCell(row, col);
+		//	cell.Value = value;
+		//	return cell;
+		//}
 	}
 }

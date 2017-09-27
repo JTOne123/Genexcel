@@ -37,6 +37,16 @@ excel.Save("myFile.xlsx");</Description>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Office\styles.xml" />
+    <None Remove="Resources\theme1.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Office\styles.xml" />
+    <EmbeddedResource Include="Resources\Office\theme1.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.7.2" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
