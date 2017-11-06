@@ -154,7 +154,22 @@ namespace Genexcel.Tests {
 				var sheet = excel.AddSheet($"S{i}");
 				for (int j = 1; j < 20; j++) {
 					for (int k = 1; k < 20; k += 2) {
-						sheet.Add(new Cell(j, k, $"Test{j}:{k}"));
+						sheet.Add(new Cell(j, k, $"Test{i}:{j}:{k}"));
+					}
+				}
+			}
+			Save(excel, MethodInfo.GetCurrentMethod());
+		}
+
+
+		[TestMethod]
+		public void MuchRowsTest() {
+			var excel = new Document();
+			for (int i = 0; i < 1; i++) { //Sheets
+				var sheet = excel.AddSheet($"S{i}");
+				for (int j = 1; j < 20000; j++) { //Rows
+					for (int k = 1; k < 20; k += 2) { //Columns
+						sheet.Add(new Cell(j, k, $"Test{i}:{j}:{k}"));
 					}
 				}
 			}

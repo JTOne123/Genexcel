@@ -18,7 +18,10 @@ using System.Text;
 namespace Genexcel {
 	public class Document {
 		const int _sheetNameLengthLimit = 31;
-		static uint _idGen = 1;
+		//static uint _idGen = 1;
+		//Dictionary<uint, Row> _dctRows = new Dictionary<uint, Row>();
+		//Dictionary<string, Cell> _dctCells = new Dictionary<string, Cell>();
+		Dictionary<string, int> _dctSharedStrings = new Dictionary<string, int>();
 		HashSet<Models.Sheet> _sheets = new HashSet<Models.Sheet>();
 		public Document() {
 			this._sheets.Add(new Models.Sheet(this, "Plan1"));
@@ -88,6 +91,10 @@ namespace Genexcel {
 			var workbook = new Workbook();
 			workbookPart.Workbook = workbook;
 
+			//Shared string
+			var sharedStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+			sharedStringPart.SharedStringTable = new SharedStringTable();
+
 			//Set theme
 			using (var stream = GetType().GetTypeInfo().Assembly.GetManifestResourceStream("Genexcel.Resources.Office.theme1.xml")) {
 				using (var reader = new StreamReader(stream)) {
@@ -112,7 +119,7 @@ namespace Genexcel {
 
 			//Adiciona as planilhas ao workbook
 			uint sheetId = 1;
-
+			int sharedStringsIndex = 0;
 			foreach (var s in _sheets) {
 				//Criar worksheet part no workbookpart
 				var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
@@ -177,24 +184,73 @@ namespace Genexcel {
 				};
 				sheets.Append(sheet);
 
-				
 
 
+
+				Dictionary<uint, Row> dctRows = new Dictionary<uint, Row>();
+				Dictionary<string, Cell> dctCells = new Dictionary<string, Cell>();
 				foreach (var c in s.GetCells()) {
 					// Insert cell A1 into the new worksheet.
-					var cell = InsertCellInWorksheet(ColTranslate(c.Col), (uint)c.Row, worksheetPart);
+					Cell cell;// = InsertCellInWorksheet(ColTranslate(c.Col), (uint)c.Row, worksheetPart);
+					//Worksheet worksheet = worksheetPart.Worksheet;
+					//SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+					var columnName = ColTranslate(c.Col);
+					var rowIndex = (uint)c.Row;
+					string cellReference = columnName + rowIndex;
+
+					// If the worksheet does not contain a row with the specified row index, insert one.
+					Row row;
+					if (dctRows.ContainsKey(rowIndex)) {
+						row = dctRows[rowIndex];
+					}
+					//else if (sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).Count() != 0) {
+					//	row = sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).First();
+					//} 
+					else {
+						row = new Row() { RowIndex = rowIndex };
+						sheetData.Append(row);
+						dctRows[rowIndex] = row;
+					}
+
+					// If there is not a cell with the specified column name, insert one.  
+					//if (row.Elements<Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0) {
+					//return row.Elements<Cell>().Where(c => c.CellReference.Value == cellReference).First();
+					//} 
+					if (dctCells.ContainsKey(cellReference)) {
+						cell = dctCells[cellReference];
+					} else {
+						// Cells must be in sequential order according to CellReference. Determine where to insert the new cell.
+						//Cell refCell = null;
+						//foreach (var cell in row.Elements<Cell>()) {
+						//	if (string.Compare(cell.CellReference.Value, cellReference, true) > 0) {
+						//		refCell = cell;
+						//		break;
+						//	}
+						//}
+
+						var newCell = new Cell() { CellReference = cellReference };
+						//row.InsertBefore(newCell, refCell);
+						row.Append(newCell);
+
+						dctCells[cellReference] = newCell;
+						//worksheet.Save();
+						cell = newCell;
+					}
+
 					var value = c.Value;
 					if (value is string) {
-						//Inicializa sharedStrings se necessário
-						SharedStringTablePart shareStringPart;
-						if (workbookPart.GetPartsOfType<SharedStringTablePart>().Any()) {
-							shareStringPart = workbookPart.GetPartsOfType<SharedStringTablePart>().First();
+						int index;
+						var str = value.ToString();
+						//str = "TESTE VELOCIDADE";
+						if (_dctSharedStrings.ContainsKey(str)) {
+							index = _dctSharedStrings[str];
 						} else {
-							shareStringPart = workbookPart.AddNewPart<SharedStringTablePart>();
+							index = sharedStringsIndex++;
+							sharedStringPart.SharedStringTable.AppendChild(new SharedStringItem(new DocumentFormat.OpenXml.Spreadsheet.Text(str)));
+							//shareStringPart.SharedStringTable.Save();
+							_dctSharedStrings[str] = index;
 						}
-
-						// Insert the text into the SharedStringTablePart.
-						int index = InsertSharedStringItem(value.ToString(), shareStringPart);
+						//int index = InsertSharedStringItem(value.ToString(), sharedStringPart);
 
 						cell.CellValue = new CellValue(index.ToString());
 						cell.DataType = new EnumValue<CellValues>(CellValues.SharedString);
@@ -668,66 +724,73 @@ namespace Genexcel {
 		//https://msdn.microsoft.com/en-US/library/office/cc861607.aspx
 		// Given text and a SharedStringTablePart, creates a SharedStringItem with the specified text 
 		// and inserts it into the SharedStringTablePart. If the item already exists, returns its index.
-		private static int InsertSharedStringItem(string text, SharedStringTablePart shareStringPart) {
-			// If the part does not contain a SharedStringTable, create one.
-			if (shareStringPart.SharedStringTable == null) {
-				shareStringPart.SharedStringTable = new SharedStringTable();
-			}
+		//private static int InsertSharedStringItem(string text, SharedStringTablePart shareStringPart) {
+		//	int i = 0;
 
-			int i = 0;
+		//	// Iterate through all the items in the SharedStringTable. If the text already exists, return its index.
+		//	foreach (SharedStringItem item in shareStringPart.SharedStringTable.Elements<SharedStringItem>()) {
+		//		if (item.InnerText == text) {
+		//			return i;
+		//		}
 
-			// Iterate through all the items in the SharedStringTable. If the text already exists, return its index.
-			foreach (SharedStringItem item in shareStringPart.SharedStringTable.Elements<SharedStringItem>()) {
-				if (item.InnerText == text) {
-					return i;
-				}
+		//		i++;
+		//	}
 
-				i++;
-			}
+		//	// The text does not exist in the part. Create the SharedStringItem and return its index.
+		//	shareStringPart.SharedStringTable.AppendChild(new SharedStringItem(new DocumentFormat.OpenXml.Spreadsheet.Text(text)));
+		//	shareStringPart.SharedStringTable.Save();
+		//	return i;
+		//}
 
-			// The text does not exist in the part. Create the SharedStringItem and return its index.
-			shareStringPart.SharedStringTable.AppendChild(new SharedStringItem(new DocumentFormat.OpenXml.Spreadsheet.Text(text)));
-			shareStringPart.SharedStringTable.Save();
-			return i;
-		}
 
 		//https://msdn.microsoft.com/en-US/library/office/cc861607.aspx
 		// Given a column name, a row index, and a WorksheetPart, inserts a cell into the worksheet. 
 		// If the cell already exists, returns it. 
-		private static Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart) {
-			Worksheet worksheet = worksheetPart.Worksheet;
-			SheetData sheetData = worksheet.GetFirstChild<SheetData>();
-			string cellReference = columnName + rowIndex;
+		//private Cell InsertCellInWorksheet(string columnName, uint rowIndex, WorksheetPart worksheetPart) {
+		//	Worksheet worksheet = worksheetPart.Worksheet;
+		//	SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+		//	string cellReference = columnName + rowIndex;
 
-			// If the worksheet does not contain a row with the specified row index, insert one.
-			Row row;
-			if (sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).Count() != 0) {
-				row = sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).First();
-			} else {
-				row = new Row() { RowIndex = rowIndex };
-				sheetData.Append(row);
-			}
+		//	// If the worksheet does not contain a row with the specified row index, insert one.
+		//	Row row;
+		//	if (_dctRows.ContainsKey(rowIndex)) {
+		//		row = _dctRows[rowIndex];
+		//	}
+		//	//else if (sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).Count() != 0) {
+		//	//	row = sheetData.Elements<Row>().Where(r => r.RowIndex == rowIndex).First();
+		//	//} 
+		//	else {
+		//		row = new Row() { RowIndex = rowIndex };
+		//		sheetData.Append(row);
+		//		_dctRows[rowIndex] = row;
+		//	}
 
-			// If there is not a cell with the specified column name, insert one.  
-			if (row.Elements<Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0) {
-				return row.Elements<Cell>().Where(c => c.CellReference.Value == cellReference).First();
-			} else {
-				// Cells must be in sequential order according to CellReference. Determine where to insert the new cell.
-				Cell refCell = null;
-				foreach (var cell in row.Elements<Cell>()) {
-					if (string.Compare(cell.CellReference.Value, cellReference, true) > 0) {
-						refCell = cell;
-						break;
-					}
-				}
+		//	// If there is not a cell with the specified column name, insert one.  
+		//	//if (row.Elements<Cell>().Where(c => c.CellReference.Value == columnName + rowIndex).Count() > 0) {
+		//	//return row.Elements<Cell>().Where(c => c.CellReference.Value == cellReference).First();
+		//	//} 
+		//	if (_dctCells.ContainsKey(cellReference)) {
+		//		return _dctCells[cellReference];
+		//	}
+		//	else {
+		//		// Cells must be in sequential order according to CellReference. Determine where to insert the new cell.
+		//		//Cell refCell = null;
+		//		//foreach (var cell in row.Elements<Cell>()) {
+		//		//	if (string.Compare(cell.CellReference.Value, cellReference, true) > 0) {
+		//		//		refCell = cell;
+		//		//		break;
+		//		//	}
+		//		//}
 
-				var newCell = new Cell() { CellReference = cellReference };
-				row.InsertBefore(newCell, refCell);
+		//		var newCell = new Cell() { CellReference = cellReference };
+		//		//row.InsertBefore(newCell, refCell);
+		//		row.Append(newCell);
 
-				worksheet.Save();
-				return newCell;
-			}
-		}
+		//		_dctCells[cellReference] = newCell;
+		//		//worksheet.Save();
+		//		return newCell;
+		//	}
+		//}
 
 		static string ColTranslate(int cl) {
 			//pega o nome da coluna
