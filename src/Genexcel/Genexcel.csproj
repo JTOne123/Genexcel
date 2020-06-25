@@ -14,7 +14,15 @@
     <PackageProjectUrl>https://github.com/guimabdo/Genexcel</PackageProjectUrl>
     <RepositoryUrl>https://github.com/guimabdo/Genexcel</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <None Remove="Resources\Office\styles.xml" />
